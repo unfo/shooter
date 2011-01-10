@@ -2,6 +2,7 @@
 <html>
 <head>
   <script src="processing.js"></script>
+  <script src="init.js"></script>
   <script type="text/javascript" src="jquery.min.js"></script>
   <script type="text/javascript" src="shooter.js"></script>
 <body>
@@ -29,6 +30,7 @@ var canvas = document.getElementById("canvas");
 var p = new Processing(canvas, shooter);
 // p.exit(); to detach it
 
+var SPACE     = 32;
 var KEY_LEFT  = 37;
 var KEY_UP    = 38;
 var KEY_RIGHT = 39;
@@ -48,6 +50,9 @@ $(document).ready(function() {
                break;
            case KEY_DOWN:
                ship.decelerate();
+               break;
+           case SPACE:
+               ship.shoot();
                break;
        }
   });

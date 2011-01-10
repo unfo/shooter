@@ -51,6 +51,27 @@ var Ship = (function(GAME) {
     var _ship = {
         velocity: 0,
         bearing: 0,
+        muzzleVelocity: 5,
+        ammunitions: [],
+        ammunition: function(ship, gameSize) {
+            var ammo = {
+                bearing: ship.bearing,
+                velocity: ship.muzzleVelocity,
+                position: position,
+                gameSize: gameSize,
+                moveForward: function($P) {
+                    this.position = ship.calculateNewPosition($P, 
+                                                              this.position, 
+                                                              this.bearing, 
+                                                              this.velocity);
+                },
+                draw: function($P) {
+                    this.moveForward($P, this.bearing, this.velocity);
+                    $P.rect(this.position.x, this.position.y, 10, 10);
+                }
+            }
+            return ammo;
+        },
         decelerate: function() {
             this.velocity = Math.max(this.velocity -= VELOCITY_DELTA, 0);
             return this.velocity;
@@ -77,40 +98,55 @@ var Ship = (function(GAME) {
             this.bearing = newBearing;
             return newBearing;
         },
-        moveForward: function($P) {
-            //console.log(position, this.velocity);
-            if (this.velocity == 0) {
-                return [0,0];
+        
+        calculateNewPosition: function($P, currentPosition, bearing, velocity) {
+             if (velocity == 0) {
+                return currentPosition;
             }
-            var bearing_rad = $P.radians(this.bearing);
+            var bearing_rad = $P.radians(bearing);
             var cos = $P.cos(bearing_rad);
             var sin = $P.sin(bearing_rad);
-            var deltaX = (this.velocity * cos);
-            var deltaY = (this.velocity * sin);
-            var targetX = position.x + deltaX;
-            var targetY = position.y + deltaY;
+            var deltaX = (velocity * cos);
+            var deltaY = (velocity * sin);
+            var targetX = currentPosition.x + deltaX;
+            var targetY = currentPosition.y + deltaY;
             
+            return { x: targetX, y: targetY }
+        },
+        moveForward: function($P) {
+            //console.log(position, this.velocity);
+           
+            var target = this.calculateNewPosition($P, 
+                                                   position, 
+                                                   this.bearing, 
+                                                   this.velocity);
             
-            if (targetX <= GAME.playzone.start.x) {
+            if (target.x <= GAME.playzone.start.x) {
                 position.x = GAME.playzone.start.x;
             } else {
-                if (targetX >= GAME.playzone.end.x) {
+                if (target.x >= GAME.playzone.end.x) {
                     position.x = GAME.playzone.end.x
                 } else {
-                    position.x = targetX;
+                    position.x = target.x;
                 }
             }
-            if (targetY <= GAME.playzone.start.y) {
+            if (target.y <= GAME.playzone.start.y) {
                 position.y = GAME.playzone.start.y;
             } else {
-                if (targetY >= GAME.playzone.end.y) {
+                if (target.y >= GAME.playzone.end.y) {
                     position.y = GAME.playzone.end.y
                 } else {
-                    position.y = targetY;
+                    position.y = target.y;
                 }
             }
             //console.log(position);
-            return [deltaX, deltaY];
+            return position;
+        },
+        
+        shoot: function() {
+            var ammo = this.ammunition(this, {width: GAME.width, height: GAME.height});
+            this.ammunitions.push(ammo);
+                                       
         },
         draw: function($P) {
             this.moveForward($P);
@@ -120,9 +156,30 @@ var Ship = (function(GAME) {
             $P.text("velocity " + this.velocity + "    bearing " + this.bearing + "      position (" + x + "," + y + ")",
                  10,10);
             
+            var self = this;
+            var ammunitionInGame = [];
+            $.each(this.ammunitions, function(i, ammo) {
+               if (typeof(ammo) !== "undefined") {
+                       
+                    if (self.positionWithinBounds(ammo.position, {x: GAME.width, y: GAME.height })) {
+                        ammo.draw($P);
+                        ammunitionInGame.push(ammo);
+                    } else {
+                        console.log("Ammo out of bounds, removing");
+                    }
+               }
+            });
+            this.ammunitions = ammunitionInGame;
+            
             $P.translate(x, y);
             $P.rotate($P.radians(this.bearing + 90));
             $P.quad( 0,-20,   -10,10,    0,0,    10,10 )
+        },
+        positionWithinBounds: function(pos, bounds) {
+            return (
+                        (pos.x >= 0 && pos.x <= bounds.x) &&
+                        (pos.y >= 0 && pos.y <= bounds.y)
+                    );
         },
         init: function($P) {
             $P.translate($P.round(position.x), $P.round(position.y));

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="processing.js"></script>
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="shooter.js"></script>
+<body>
+    <h1>Shooter</h1>
+
+    <canvas width="666" height="666" id="canvas"></canvas>
+<script type="text/javascript">
+
+var game = Game(666,666);
+var ship = Ship(game);
+
+function shooter($P) {
+  $P.setup = function() {
+    ship.init($P);
+  }
+  // Override draw function, by default it will be called 60 times per second
+  $P.draw = function() {
+    game.draw($P);
+    ship.draw($P);
+  }
+}
+
+var canvas = document.getElementById("canvas");
+// attaching the sketchProc function to the canvas
+var p = new Processing(canvas, shooter);
+// p.exit(); to detach it
+
+var KEY_LEFT  = 37;
+var KEY_UP    = 38;
+var KEY_RIGHT = 39;
+var KEY_DOWN  = 40;
+
+$(document).ready(function() {
+  $(document).bind("keydown", function(e) {
+       switch (e.keyCode) {
+           case KEY_LEFT: 
+               ship.turnLeft();
+               break;
+           case KEY_RIGHT:
+               ship.turnRight();
+               break;
+           case KEY_UP:
+               ship.accelerate();
+               break;
+           case KEY_DOWN:
+               ship.decelerate();
+               break;
+       }
+  });
+});
+</script>
+
+
+
+
+
+</body>
+</html>

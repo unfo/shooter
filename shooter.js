@@ -164,9 +164,7 @@ var Ship = (function(GAME) {
                     if (self.positionWithinBounds(ammo.position, {x: GAME.width, y: GAME.height })) {
                         ammo.draw($P);
                         ammunitionInGame.push(ammo);
-                    } else {
-                        console.log("Ammo out of bounds, removing");
-                    }
+                    } 
                }
             });
             this.ammunitions = ammunitionInGame;
